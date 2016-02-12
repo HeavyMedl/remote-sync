@@ -1,0 +1,39 @@
+{
+  "name": "remote-sync",
+  "version": "0.0.0",
+  "description": "Synchronize remote files to local disk and vise versa using LFTP.",
+  "main": "sync.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kurtlocker/remote-sync.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ftp",
+    "sftp",
+    "lftp",
+    "remote",
+    "seedbox",
+    "copy",
+    "sync",
+    "client",
+    "transfer",
+    "file",
+    "automate",
+    "deploy",
+    "deployment",
+    "automation"
+  ],
+  "author": "Kurt Medley <kurtdmedley@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kurtlocker/remote-sync/issues"
+  },
+  "homepage": "https://github.com/kurtlocker/remote-sync",
+  "devDependencies": {
+    "jsdoc": "^3.4.0",
+    "minami": "^1.1.1"
+  }
+}
