@@ -115,14 +115,15 @@ class RemoteSync {
     const o = options;
     return {
       lftp_settings : this._commands(o.lftp_settings) || '',
-      user : o.user || '',
+      us : o.user || '',
       pw : o.pw || '',
       p : o.protocol || 'ftp',
-      host : o.host || '',
-      port : o.port || '',
-      debug : o.debug ? 'd' : '',
+      ho : o.host || '',
+      po : o.port || '',
+      d : o.debug ? 'd' : '',
       operations : o.operations.length > 0 ? o.operations : [],
-      mode : o.mode ? o.mode : 'sync'
+      mode : o.mode ? o.mode : 'sync',
+      persistent : o.persistent ? true : false
     }
   }
   
@@ -191,12 +192,12 @@ class RemoteSync {
   }
 
   /**
-   * [_perform_iteration description]
+   * [_perform_it description]
    * @param  {[type]} obj   [description]
    * @param  {[type]} index [description]
    * @return {[type]}       [description]
    */
-  _perform_iteration(obj, index) {
+  _perform_it(obj, index) {
     const flags = obj.flags   || '',
           settings = obj.settings|| {},
           out = `Attemping operation ${index+1} '${obj.operation}':`;
@@ -242,7 +243,10 @@ class RemoteSync {
    * @return {[type]} [description]
    */
   _perform() {
-    this.options.operations.forEach(this._perform_iteration, this);
+    this.options.persistent 
+      ? this.execute()
+      : this.options.operations
+          .forEach(this._perform_it, this);
     return this;
   }
 
@@ -396,38 +400,66 @@ class RemoteSync {
    * @return {[type]}          [description]
    */
   execute(settings) {
+    this.options.persistent
+      ? this._execute_persistent()
+      : this._execute(settings)
+  }
+
+  /**
+   * [_execute_persistent description]
+   * @return {[type]} [description]
+   */
+  _execute_persistent() {
+    const o = this.options;
+    const open =
+      `open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po};`
+    this.pers_child = require('child_process')
+      .spawn('lftp',['-e', `${o.lftp_settings} ${open}`]);
+    this._bind_socket_events(this.pers_child);
+    
+
+    this.pers_child.stdin.write(open+'\n');
+    this.pers_child.stdin.write('nlist\n');
+    this.pers_child.stdin.write('ls\n');
+    this.pers_child.stdin.write('nlist\n');
+
+    return this;
+  }
+
+  /**
+   * [_execute description]
+   * @param  {[type]} settings [description]
+   * @return {[type]}          [description]
+   */
+  _execute(settings) {
+    const s = settings
     const o = this.options;
     const mode = o.mode;
     const commands = `${o.lftp_settings}
-      open -${o.debug}u ${o.user},${o.pw} ${o.p}:\/\/${o.host}:${o.port}; 
+      open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po}; 
       ${this.remote_commands}`;
     const spawn = mode == 'sync'
       ? require('child_process').spawnSync
       : require('child_process').spawn
-    const lftp = spawn('lftp', ['-c', commands], {
-      stdio:[ 
-        settings && settings.stdio && settings.stdio.stdin 
-          ? settings.stdio.stdin   : 0, 
-        settings && settings.stdio && settings.stdio.stdout  
-          ? settings.stdio.stdout  : 1,  
-        settings && settings.stdio && settings.stdio.stderr  
-          ? settings.stdio.stderr  : 2
-      ]
-    });
+    const lftp = spawn('lftp', ['-c', commands], 
+      s.stdio && s.stdio.stdio_config 
+        ? s.stdio.stdio_config : {stdio:[0,1,2]});
     switch (mode) {
       case "sync":
         this._print(lftp.status);
-        settings && settings.sync ? settings.sync(lftp) : void 0;
+        s && s.sync ? s.sync(lftp) : void 0;
         break;
       case "async":
-        this._bind_socket_events(lftp, settings.stdout,
-          settings.stderr, settings.close, settings.error);
+        this._bind_socket_events(lftp, 
+          s.stdio && s.stdio.stdout ? s.stdio.stdout  : undefined,
+          s.stdio && s.stdio.stderr ? s.stdio.stderr  : undefined,
+          s.stdio && s.stdio.close  ? s.stdio.close   : undefined,
+          s.stdio && s.stdio.error  ? s.stdio.error   : undefined);
         break;
       default:
-        let s = JSON.stringify;
         this._log(
           [ '%s%sRemoteSync:%s%s Mode \''+mode+'\' not ',
-            'valid.'+' Registered modes are async,sync.\n'
+            'valid.'+' Modes are async, sync.\n'
           ].join(''),
           [ this._ansi('cyan'), this._ansi('bold'), 
               this._ansi('rbld'), this._ansi('yllw')]
@@ -449,7 +481,7 @@ class RemoteSync {
 module.exports = RemoteSync;
 
 const client = new RemoteSync({
-  mode : 'async',
+  mode : 'sync',
   persistent : true,
   operations : [
     // {
@@ -478,12 +510,7 @@ const client = new RemoteSync({
     // }
     {
       operation : 'list',
-      source : '/rtorrent/downloads/completed/tv',
-      settings : {
-        stdio : {
-          stdout : 'pipe'
-        }
-      }
+      source : '/rtorrent/downloads/completed/tv'
     }
   ],
   lftp_settings : {
@@ -509,23 +536,3 @@ client
     command : 'cd /rtorrent/downloads/completed/; nlist;'
   })
   .perform();
-
-// var child = require('child_process').spawn('lftp');
-
-// child.stdout.on('data', data => {
-//   console.log(`stdout: ${data}`);
-// });
-
-// child.stderr.on('data', data => {
-//   console.log(`stderr: ${data}`);
-// });
-
-// child.on('close', code => {
-//   console.log(`code: ${code}`);
-// });
-
-// child.on('error', err => {
-//   console.log(`error: ${err}`);
-// });
-
-// child.stdin.write('ls\n');
