@@ -316,8 +316,18 @@ class RemoteSync {
     const lftp_settings = `${o.lftp_settings}`;
     const open =
       `open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po};`;
-    let commands = this.get_commands;
-
+    const stdio_config = o.stdio && o.stdio.stdio_config 
+      ? o.stdio.stdio_config : {stdio:[0,1,2]};
+    const stdout  = o.stdio && o.stdio.stdout 
+      ? o.stdio.stdout : undefined
+    const stderr  = o.stdio && o.stdio.stderr 
+      ? o.stdio.stderr : undefined;
+    const close   = o.stdio && o.stdio.close
+      ? o.stdio.close : undefined;
+    const error   = o.stdio && o.stdio.error
+      ? o.stdio.error : undefined;
+    
+    let commands  = this.get_commands;
     let ops = [];
     o.operations.forEach(op => {
       ops = ops.concat(op.operation);
@@ -334,12 +344,13 @@ class RemoteSync {
     const exec = `${lftp_settings} ${open} ${this.remote_commands}`;
     
     if (o.exit) {
-      let lftp = spawn('lftp',[eFlag, exec],{stdio:[0,1,2]});
-      this._bind_socket_events(lftp);
+      let lftp = spawn('lftp', [eFlag, exec], stdio_config);
+      this._bind_socket_events(lftp, stdout, stderr, close, error);
     } else { // keep open, save child to object.
       this.pers_child = 
-      spawn('lftp', [eFlag, exec], {stdio:['pipe',1,2]});
-      this._bind_socket_events(this.pers_child);
+      spawn('lftp', [eFlag, exec], stdio_config);
+      this._bind_socket_events(this.pers_child, stdout, stderr, 
+        close, error);
     }
     return this;
   }
@@ -477,10 +488,13 @@ const client = new RemoteSync({
   port : '32001',
   persistent : true,
   sync : true,
-  exit : false
+  exit : true
 });
 
 client.perform();
 
 // using RemoteSync as a basic ftp client
 // client.commands('nlist').execute();
+
+// TODO - Override individual operations to allow user to open
+// different connections using user/pw/host/port/protocol
