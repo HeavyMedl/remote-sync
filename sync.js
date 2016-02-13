@@ -8,7 +8,6 @@ class RemoteSync {
   constructor(options) {
     this.options = this._setup(options);
     this.remote_commands = '';
-    this.operations = ['download','upload','delete','list'];
     return this;
   }
 
@@ -29,19 +28,11 @@ class RemoteSync {
   }
 
   /**
-   * [get_operations description]
-   * @return {[type]} [description]
+   * [set_commands description]
+   * @param {[type]} commands [description]
    */
-  get get_operations() {
-    return this.operations;
-  }
-
-  /**
-   * [set_operations description]
-   * @param {[type]} operations [description]
-   */
-  set set_operations(operations) {
-    this.operations = operations;
+  set set_commands(commands) {
+    this.remote_commands = commands;
   }
 
   /**
@@ -122,8 +113,8 @@ class RemoteSync {
       po : o.port || '',
       d : o.debug ? 'd' : '',
       operations : o.operations.length > 0 ? o.operations : [],
-      exit : !o.exit ? false : true,
-      sync : !o.sync ? false : true,
+      exit : o.exit ? true : false,
+      sync : o.sync ? true : false,
       persistent : o.persistent ? true : false,
     }
   }
@@ -169,18 +160,28 @@ class RemoteSync {
   }
 
   /**
+   * [_syso description]
+   * @param  {[type]} operation [description]
+   * @param  {[type]} i         [description]
+   * @return {[type]}           [description]
+   */
+  _syso(operation, i) {
+    const out = ` ${i} '${operation}':`;
+    this._log('%s%sRemoteSync:%s%s Attemping operation(s)'+out, 
+      [ this._ansi('cyan'),this._ansi('bold'), 
+        this._ansi('rbld'), this._ansi('yllw')]);
+    this._log('%s------------------------------------------------',
+      [this._ansi('cyan')]);
+  }
+
+  /**
    * [_perform_it description]
    * @param  {[type]} obj [description]
    * @param  {[type]} i   [description]
    * @return {[type]}     [description]
    */
   _perform_it(obj, i) {
-    const out = `Attemping operation ${i+1} '${obj.operation}':`;
-    
-    this._log('%s%sRemoteSync:%s%s '+out, [this._ansi('cyan'),
-      this._ansi('bold'), this._ansi('rbld'), this._ansi('yllw')]);
-    this._log('%s------------------------------------------------',
-      [this._ansi('cyan')]);
+    this._syso(obj.operation, i+1);
     this._run(obj.command, obj.settings);
   }
 
@@ -309,19 +310,37 @@ class RemoteSync {
    * @return {[type]} [description]
    */
   _execute_persistent() {
+    const spawn = require('child_process').spawn;
     const o = this.options;
+    const eFlag = o.exit ? '-c' : '-e';
+    const lftp_settings = `${o.lftp_settings}`;
     const open =
-      `open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po};`
-    this.pers_child = require('child_process')
-      .spawn('lftp',['-e', `${o.lftp_settings} ${open}`]);
-    this._bind_socket_events(this.pers_child);
+      `open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po};`;
+    let commands = this.get_commands;
+
+    let ops = [];
+    o.operations.forEach(op => {
+      ops = ops.concat(op.operation);
+    });
+    if (!commands && ops.length > 0) {
+      this._syso(ops.toString(), ops.length);
+    }
+    if (!commands) {
+      o.operations.forEach(op => {
+        commands = commands += op.command + ';';
+      });
+      this.set_commands = commands;
+    }
+    const exec = `${lftp_settings} ${open} ${this.remote_commands}`;
     
-
-    this.pers_child.stdin.write(open+'\n');
-    this.pers_child.stdin.write('nlist\n');
-    this.pers_child.stdin.write('ls\n');
-    this.pers_child.stdin.write('nlist\n');
-
+    if (o.exit) {
+      let lftp = spawn('lftp',[eFlag, exec],{stdio:[0,1,2]});
+      this._bind_socket_events(lftp);
+    } else { // keep open, save child to object.
+      this.pers_child = 
+      spawn('lftp', [eFlag, exec], {stdio:['pipe',1,2]});
+      this._bind_socket_events(this.pers_child);
+    }
     return this;
   }
 
@@ -456,8 +475,12 @@ const client = new RemoteSync({
   pw : '',
   host : 'nad102.seedstuff.ca',
   port : '32001',
+  persistent : true,
   sync : true,
-  exit : true
+  exit : false
 });
 
 client.perform();
+
+// using RemoteSync as a basic ftp client
+// client.commands('nlist').execute();
