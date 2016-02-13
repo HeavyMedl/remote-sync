@@ -122,8 +122,9 @@ class RemoteSync {
       po : o.port || '',
       d : o.debug ? 'd' : '',
       operations : o.operations.length > 0 ? o.operations : [],
-      mode : o.mode ? o.mode : 'sync',
-      persistent : o.persistent ? true : false
+      exit : !o.exit ? false : true,
+      sync : !o.sync ? false : true,
+      persistent : o.persistent ? true : false,
     }
   }
   
@@ -156,17 +157,6 @@ class RemoteSync {
   }
 
   /**
-   * [_mirror description]
-   * @param  {[type]} obj   [description]
-   * @param  {[type]} flags [description]
-   * @return {[type]}       [description]
-   */
-  _mirror(obj, flags) {
-    let e = this._esc_str;
-    return `mirror ${flags} ${e(obj.source)} ${e(obj.target)}`;
-  }
-
-  /**
    * [_run description]
    * @return {[type]} [description]
    */
@@ -179,63 +169,19 @@ class RemoteSync {
   }
 
   /**
-   * [_is_custom_registered description]
-   * @param  {[type]}  operation [description]
-   * @return {Boolean}           [description]
-   */
-  _is_custom_registered(operation) {
-    const opArr = this.operations.filter(x => 
-      x != 'download' && x != 'upload' 
-      && x != 'delete' && x != 'list'
-    )
-    return opArr.indexOf(operation) != -1 
-  }
-
-  /**
    * [_perform_it description]
-   * @param  {[type]} obj   [description]
-   * @param  {[type]} index [description]
-   * @return {[type]}       [description]
+   * @param  {[type]} obj [description]
+   * @param  {[type]} i   [description]
+   * @return {[type]}     [description]
    */
-  _perform_it(obj, index) {
-    const flags = obj.flags   || '',
-          settings = obj.settings|| {},
-          out = `Attemping operation ${index+1} '${obj.operation}':`;
+  _perform_it(obj, i) {
+    const out = `Attemping operation ${i+1} '${obj.operation}':`;
     
     this._log('%s%sRemoteSync:%s%s '+out, [this._ansi('cyan'),
       this._ansi('bold'), this._ansi('rbld'), this._ansi('yllw')]);
     this._log('%s------------------------------------------------',
       [this._ansi('cyan')]);
-    switch (obj.operation) {
-      case "download":
-        this._run(this._mirror(obj, flags), settings);
-        break;
-      case "upload":
-        this._run(this._mirror(obj, '-R '+flags), settings);
-        break;
-      case "delete":
-        this._run(`rm ${flags} ${obj.target}`, settings);
-        break;
-      case "list":
-        this._run(`cd ${this._esc_str(obj.source)}`, 'nlist', 
-          settings);
-        break;
-      default:
-        if (this._is_custom_registered(obj.operation)) {
-          this[obj.operation](); return;
-        }
-        let s = JSON.stringify;
-        this._log(
-          [ '%s%sRemoteSync:%s%s'+' Operation \'',
-            obj.operation+'\' not ','valid in ',
-            s(obj)+'.'+' Registered operations are ',
-            this.operations+'. Please register this ',
-            'operation.\n'
-          ].join(''), 
-            [ this._ansi('cyan'), this._ansi('bold'), 
-              this._ansi('rbld'), this._ansi('yllw')]
-        );
-    }
+    this._run(obj.command, obj.settings);
   }
 
   /**
@@ -359,53 +305,6 @@ class RemoteSync {
   }
 
   /**
-   * [escape description]
-   * @param  {[type]} str [description]
-   * @return {[type]}     [description]
-   */
-  static escape(str) {
-    return this._esc_str(str);
-  }
-
-  /**
-   * [register description]
-   * @param  {[type]} operation [description]
-   * @param  {[type]} settings  [description]
-   * @return {[type]}           [description]
-   */
-  register(settings) {
-    this.set_operations = 
-      this.get_operations.concat(settings.operation);
-    this[settings.operation] = this._safe(() => {
-        this._run(settings.command, settings);
-      }
-    );
-    return this;
-  }
-
-  /**
-   * [commands description]
-   * @param  {[type]} arguments [description]
-   * @return {[type]}           [description]
-   */
-  commands() {
-    this.remote_commands = 
-      this._commands(Array.prototype.slice.call(arguments));
-    return this;
-  }
-  
-  /**
-   * [execute description]
-   * @param  {[type]} settings [description]
-   * @return {[type]}          [description]
-   */
-  execute(settings) {
-    this.options.persistent
-      ? this._execute_persistent()
-      : this._execute(settings)
-  }
-
-  /**
    * [_execute_persistent description]
    * @return {[type]} [description]
    */
@@ -434,39 +333,58 @@ class RemoteSync {
   _execute(settings) {
     const s = settings
     const o = this.options;
-    const mode = o.mode;
     const commands = `${o.lftp_settings}
       open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po}; 
       ${this.remote_commands}`;
-    const spawn = mode == 'sync'
+    const spawn = o.sync
       ? require('child_process').spawnSync
       : require('child_process').spawn
     const lftp = spawn('lftp', ['-c', commands], 
-      s.stdio && s.stdio.stdio_config 
+      s && s.stdio && s.stdio.stdio_config 
         ? s.stdio.stdio_config : {stdio:[0,1,2]});
-    switch (mode) {
-      case "sync":
-        this._print(lftp.status);
-        s && s.sync ? s.sync(lftp) : void 0;
-        break;
-      case "async":
-        this._bind_socket_events(lftp, 
-          s.stdio && s.stdio.stdout ? s.stdio.stdout  : undefined,
-          s.stdio && s.stdio.stderr ? s.stdio.stderr  : undefined,
-          s.stdio && s.stdio.close  ? s.stdio.close   : undefined,
-          s.stdio && s.stdio.error  ? s.stdio.error   : undefined);
-        break;
-      default:
-        this._log(
-          [ '%s%sRemoteSync:%s%s Mode \''+mode+'\' not ',
-            'valid.'+' Modes are async, sync.\n'
-          ].join(''),
-          [ this._ansi('cyan'), this._ansi('bold'), 
-              this._ansi('rbld'), this._ansi('yllw')]
-        );
-        process.exit(1);
+    
+    if (o.sync) {
+      s && s.sync ? s.sync(lftp) : void 0;
+      this._print(lftp.status);
+    } else {
+      this._bind_socket_events(lftp, 
+        s && s.stdio && s.stdio.stdout ? s.stdio.stdout  : undefined,
+        s && s.stdio && s.stdio.stderr ? s.stdio.stderr  : undefined,
+        s && s.stdio && s.stdio.close  ? s.stdio.close   : undefined,
+        s && s.stdio && s.stdio.error  ? s.stdio.error   : undefined);
     }
     return this;
+  }
+
+  /**
+   * [escape description]
+   * @param  {[type]} str [description]
+   * @return {[type]}     [description]
+   */
+  static escape(str) {
+    return this._esc_str(str);
+  }
+
+  /**
+   * [commands description]
+   * @param  {[type]} arguments [description]
+   * @return {[type]}           [description]
+   */
+  commands() {
+    this.remote_commands = 
+      this._commands(Array.prototype.slice.call(arguments));
+    return this;
+  }
+  
+  /**
+   * [execute description]
+   * @param  {[type]} settings [description]
+   * @return {[type]}          [description]
+   */
+  execute(settings) {
+    this.options.persistent
+      ? this._execute_persistent()
+      : this._execute(settings)
   }
 
   /**
@@ -481,14 +399,28 @@ class RemoteSync {
 module.exports = RemoteSync;
 
 const client = new RemoteSync({
-  mode : 'sync',
-  persistent : true,
   operations : [
+    {
+      operation : 'download',
+      command : [
+        'mirror -c -vvv --only-missing ',
+        'rtorrent/downloads/completed/fights/ ',
+        '/Users/kurtmedley/Desktop/'
+      ].join(''),
+      settings : {
+        sync : child => {
+          if (child.status != 0) {
+            process.exit(1);
+          }
+        }
+      }
+    },
+    {
+      operation : 'list',
+      command : 'nlist rtorrent/downloads/completed'
+    }
     // {
     //   operation : 'download',
-    //   source : 'rtorrent/downloads/completed/fights/',
-    //   target : '/cygdrive/c/Users/kmedley/Desktop/seedbox',
-    //   flags : '-c -vvv --only-missing',
     //   settings : {
     //     sync : child => {
     //       if (child.status != 0) {
@@ -508,10 +440,6 @@ const client = new RemoteSync({
     //   target : 'rtorrent/downloads/seedbox',
     //   flags : '-r',
     // }
-    {
-      operation : 'list',
-      source : '/rtorrent/downloads/completed/tv'
-    }
   ],
   lftp_settings : {
     'ftp:ssl-force':'true',
@@ -527,12 +455,9 @@ const client = new RemoteSync({
   user : '',
   pw : '',
   host : 'nad102.seedstuff.ca',
-  port : '32001'
+  port : '32001',
+  sync : true,
+  exit : true
 });
 
-client
-  .register({
-    operation : 'mine',
-    command : 'cd /rtorrent/downloads/completed/; nlist;'
-  })
-  .perform();
+client.perform();
