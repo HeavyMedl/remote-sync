@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs": "node_modules/.bin/jsdoc . -t node_modules/minami -d gh-pages/ -R README.md; exit 0"
+    "docs": "node_modules/.bin/jsdoc . -t node_modules/minami -d . -R README.md; exit 0"
   },
   "keywords": [
     "ftp",
