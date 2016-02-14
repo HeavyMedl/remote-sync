@@ -361,10 +361,12 @@ class RemoteSync {
    * @return {[type]}          [description]
    */
   _execute(settings) {
-    const s = settings
+    const s = settings;
     const o = this.options;
+    const us = s.us || o.us, pw = s.pw || o.pw, p = s.p || o.p,
+          ho = s.ho || o.ho, po = s.po || o.po;
     const commands = `${o.lftp_settings}
-      open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po}; 
+      open -${d}u ${us},${pw} ${p}:\/\/${ho}:${po}; 
       ${this.remote_commands}`;
     const spawn = o.sync
       ? require('child_process').spawnSync
@@ -488,13 +490,10 @@ const client = new RemoteSync({
   port : '32001',
   persistent : true,
   sync : true,
-  exit : true
+  exit : false
 });
 
 client.perform();
 
 // using RemoteSync as a basic ftp client
 // client.commands('nlist').execute();
-
-// TODO - Override individual operations to allow user to open
-// different connections using user/pw/host/port/protocol
