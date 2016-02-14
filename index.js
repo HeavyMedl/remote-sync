@@ -363,10 +363,11 @@ class RemoteSync {
   _execute(settings) {
     const s = settings;
     const o = this.options;
-    const us = s.us || o.us, pw = s.pw || o.pw, p = s.p || o.p,
-          ho = s.ho || o.ho, po = s.po || o.po;
+    const us = s && s.us || o.us, pw = s && s.pw || o.pw, 
+          p = s && s.p || o.p, ho = s && s.ho || o.ho, 
+          po = s && s.po || o.po
     const commands = `${o.lftp_settings}
-      open -${d}u ${us},${pw} ${p}:\/\/${ho}:${po}; 
+      open -${o.d}u ${us},${pw} ${p}:\/\/${ho}:${po}; 
       ${this.remote_commands}`;
     const spawn = o.sync
       ? require('child_process').spawnSync
@@ -432,24 +433,24 @@ module.exports = RemoteSync;
 
 const client = new RemoteSync({
   operations : [
-    {
-      operation : 'download',
-      command : [
-        'mirror -c -vvv --only-missing ',
-        'rtorrent/downloads/completed/fights/ ',
-        '/Users/kurtmedley/Desktop/'
-      ].join(''),
-      settings : {
-        sync : child => {
-          if (child.status != 0) {
-            process.exit(1);
-          }
-        }
-      }
-    },
+    // {
+    //   operation : 'download',
+    //   command : [
+    //     'mirror -c -vvv --only-missing ',
+    //     'rtorrent/downloads/completed/fights/ ',
+    //     '/Users/kurtmedley/Desktop/'
+    //   ].join(''),
+    //   settings : {
+    //     sync : child => {
+    //       if (child.status != 0) {
+    //         process.exit(1);
+    //       }
+    //     }
+    //   }
+    // },
     {
       operation : 'list',
-      command : 'nlist rtorrent/downloads/completed'
+      command : 'nlist files/completed/tv'
     }
     // {
     //   operation : 'download',
@@ -486,8 +487,7 @@ const client = new RemoteSync({
   },
   user : '',
   pw : '',
-  host : 'nad102.seedstuff.ca',
-  port : '32001',
+  host : 'pasta.whatbox.ca',
   persistent : true,
   sync : true,
   exit : false
