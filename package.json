@@ -2,7 +2,7 @@
   "name": "remote-sync",
   "version": "0.0.0",
   "description": "Synchronize remote files to local disk and vise versa using LFTP.",
-  "main": "sync.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/kurtlocker/remote-sync.git"
