@@ -1,7 +1,7 @@
 {
   "name": "remote-sync",
   "version": "0.0.0",
-  "description": "Synchronize remote files to local disk and vise versa using LFTP.",
+  "description": "A cross-platform file synchronizer that wraps LFTP.",
   "main": "index.js",
   "repository": {
     "type": "git",
