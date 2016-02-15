@@ -433,21 +433,21 @@ module.exports = RemoteSync;
 
 const client = new RemoteSync({
   operations : [
-    // {
-    //   operation : 'download',
-    //   command : [
-    //     'mirror -c -vvv --only-missing ',
-    //     'rtorrent/downloads/completed/fights/ ',
-    //     '/Users/kurtmedley/Desktop/'
-    //   ].join(''),
-    //   settings : {
-    //     sync : child => {
-    //       if (child.status != 0) {
-    //         process.exit(1);
-    //       }
-    //     }
-    //   }
-    // },
+    {
+      operation : 'download',
+      command : [
+        'mirror -c -vvv --only-missing ',
+        'files/completed/tv ',
+        '/Users/kurtmedley/Desktop/'
+      ].join(''),
+      settings : {
+        sync : child => {
+          if (child.status != 0) {
+            process.exit(1);
+          }
+        }
+      }
+    },
     {
       operation : 'list',
       command : 'nlist files/completed/tv'
