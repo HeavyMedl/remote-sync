@@ -207,16 +207,16 @@ class RemoteSync {
   _bind_socket_events(child, stdout, stderr, close, error) {
     if (child.stdout && child.stdout.on) {
       child.stdout.on('data', data => {
-          stdout 
-            ? stdout(data)
-            : this._print_out(data);
+        stdout 
+          ? stdout(data)
+          : this._print(undefined, data, undefined);
       });
     }
     if (child.stderr && child.stderr.on) {
       child.stderr.on('data', data => {
         stderr
           ? stderr(data)
-          : this._print_out(data);
+          : this._print(undefined, undefined, data);
       });
     }
     if (child.on) {
@@ -283,24 +283,6 @@ class RemoteSync {
       code, 
       this._out(stdout), 
       this._out(stderr)));
-  }
-
-  /**
-   * [print_out description]
-   * @param  {[type]} stdout [description]
-   * @return {[type]}        [description]
-   */
-  _print_out(stdout) {
-    return this._print(undefined, stdout, undefined);
-  }
-
-  /**
-   * [print_err description]
-   * @param  {[type]} stderr [description]
-   * @return {[type]}        [description]
-   */
-  _print_err(stderr) {
-    return this._print(undefined, stdout, stderr)
   }
 
   /**
