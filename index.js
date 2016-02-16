@@ -439,18 +439,15 @@ const client = new RemoteSync({
         'mirror -c -vvv --only-missing ',
         'files/completed/tv ',
         '/Users/kurtmedley/Desktop/'
-      ].join(''),
-      settings : {
-        sync : child => {
-          if (child.status != 0) {
-            process.exit(1);
-          }
-        }
-      }
+      ].join('')
     },
     {
-      operation : 'list',
-      command : 'nlist files/completed/tv'
+      operation : 'download',
+      command : [
+        'mirror -c -vvv --only-missing ',
+        'files/completed/movies ',
+        '/Users/kurtmedley/Desktop/'
+      ].join('')
     }
     // {
     //   operation : 'download',
@@ -490,7 +487,7 @@ const client = new RemoteSync({
   host : 'pasta.whatbox.ca',
   persistent : true,
   sync : true,
-  exit : false
+  exit : true
 });
 
 client.perform();
