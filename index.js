@@ -343,9 +343,9 @@ class RemoteSync {
   _execute(settings) {
     const s = settings;
     const o = this.options;
-    const us = s && s.us || o.us, pw = s && s.pw || o.pw, 
-          p = s && s.p || o.p, ho = s && s.ho || o.ho, 
-          po = s && s.po || o.po
+    const us = s && s.user || o.us, pw = s && s.pw || o.pw, 
+          p = s && s.protocol || o.p, ho = s && s.host || o.ho, 
+          po = s && s.port || o.po
     const commands = `${o.lftp_settings}
       open -${o.d}u ${us},${pw} ${p}:\/\/${ho}:${po}; 
       ${this.remote_commands}`;
