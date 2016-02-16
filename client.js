@@ -4,7 +4,7 @@ const client = new RemoteSync({
     {
       operation : 'tv',
       command : [
-        'mirror -c -vvv --only-missing --Remove-source-files ',
+        'mirror -c -vvv --only-missing ',
         'files/completed/ ',
         '/cygdrive/c/Users/kmedley/Desktop/'
       ].join('')
@@ -45,7 +45,7 @@ const client = new RemoteSync({
   user : '',
   pw : '',
   host : 'pasta.whatbox.ca',
-  persistent : true,
+  persistent : false,
   exit : true
 });
 
