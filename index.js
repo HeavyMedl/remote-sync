@@ -170,8 +170,6 @@ class RemoteSync {
     this._log('%s%sRemoteSync:%s%s Attemping operation(s)'+out, 
       [ this._ansi('cyan'),this._ansi('bold'), 
         this._ansi('rbld'), this._ansi('yllw')]);
-    this._log('%s------------------------------------------------',
-      [this._ansi('cyan')]);
   }
 
   /**

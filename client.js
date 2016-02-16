@@ -4,25 +4,9 @@ const client = new RemoteSync({
     {
       operation : 'tv',
       command : [
-        'mirror -c -vvv --only-missing ',
-        'files/completed/tv ',
-        '/Users/kurtmedley/Desktop/'
-      ].join('')
-    },
-    {
-      operation : 'movies',
-      command : [
-        'mirror -c -vvv --only-missing ',
-        'files/completed/movies ',
-        '/Users/kurtmedley/Desktop/'
-      ].join('')
-    }
-    {
-      operation : 'fights',
-      command : [
-        'mirror -c -vvv --only-missing ',
-        'files/completed/fights ',
-        '/Users/kurtmedley/Desktop/'
+        'mirror -c -vvv --only-missing --Remove-source-files ',
+        'files/completed/ ',
+        '/cygdrive/c/Users/kmedley/Desktop/'
       ].join('')
     }
     // {
