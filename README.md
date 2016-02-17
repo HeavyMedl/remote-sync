@@ -171,3 +171,69 @@ client.perform();   // Mirror only missing files from remote source to local dis
                     // If successful, delete the remote source and get remote listing
                     // from other.host.com/files/
 ```
+**Fancy level 3:** Open a persistent connection (`persistent: true`) to the designated host and perform operations in series. In this configuration a connection is established to `ftp.host.com`, each operation's `command` is executed in series followed by severing the connection (`exit: true`).
+```js
+// client.js
+const RemoteSync = require('remote-sync');
+const mirror = 'mirror -c --only-missing <source> <dest>';
+const upload = 'mirror -R -c --only-newer --overwrite --exclude .git/ <local> <remote>'; // reverse mirror -R
+const config = {
+    operations : [
+        {
+            operation : 'mirror directory',
+            command : mirror
+        },
+        {  
+            operation : 'upload directory',
+            command : upload
+        }
+    ],
+    user : 'kurt',
+    pw : 'foobar',
+    host : 'ftp.host.com',
+    lftp_settings : settings_obj, // omitted for brevity
+    persistent : true,
+    exit : true
+};
+const client = new RemoteSync(config);
+client.perform();   // Connection stays open until `mirror` and `upload` complete
+```
+**General Purpose LFTP Client**
+```js
+'use strict';
+const RemoteSync = require('remote-sync');
+const rs = new RemoteSync({
+  user : 'kurt',
+  pw : 'foobar',
+  host : 'ftp.host.com'
+});
+// Define an iterator and execute commands in series
+rs[Symbol.iterator] = function* () {
+    yield rs.commands('nlist files').execute();
+    yield rs.commands('nlist files/completed').execute();
+    yield rs.commands('nlist files').execute();
+};
+[...rs];
+```
+## Common Commands
+**Mirror directory from <source> to <dest>**
+```js
+const command = 'mirror -c --only-missing <source> <dest>';
+```
+**Upload directory from <local> to <remote>**
+```js
+const upload = 'mirror -R -c --only-newer --overwrite --exclude .git/ <local> <remote>';
+```
+**Delete remote <source>**
+```js
+const remove = 'rm -r <source>';
+```
+**Get remote listing <source>**
+```js
+const list = 'nlist <source>';
+```
+## Cronjob
+```bash
+# Run client.js every 15 minutes
+0/15 * * * * path/to/node path/to/client.js
+```

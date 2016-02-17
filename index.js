@@ -111,12 +111,14 @@ class RemoteSync {
       pw : o.pw || '',
       p : o.protocol || 'ftp',
       ho : o.host || '',
-      po : o.port || '',
+      po : o.port || '21',
       d : o.debug ? 'd' : '',
-      operations : o.operations.length > 0 ? o.operations : [],
-      exit : o.exit ? true : false,
-      sync : o.sync ? true : false,
-      persistent : o.persistent ? true : false,
+      operations : o.operations && 
+        o.operations.length > 0 ? o.operations : [],
+      exit : typeof o.exit !== 'undefined' ? o.exit : true,
+      sync : typeof o.sync !== 'undefined' ? o.sync : true,
+      persistent : typeof o.persistent !== 'undefined' 
+        ? o.persistent : false,
     }
   }
   
