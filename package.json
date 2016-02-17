@@ -1,7 +1,7 @@
 {
   "name": "remote-sync",
   "version": "0.0.0",
-  "description": "A cross-platform file synchronizer that wraps LFTP.",
+  "description": "A cross-platform LFTP wrapper for automating file synchronization.",
   "main": "index.js",
   "repository": {
     "type": "git",
