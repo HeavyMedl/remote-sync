@@ -73,10 +73,10 @@ sudo yum install lftp
 // https://nodejs.org/api/child_process.html#child_process_options_stdio
 {
     stdio_config : {stdio:[]},  // See above link for custom configuration.
-    stdout : data => fn(data),  // Function to use as the child's stdout event
-    stderr : data => fn(data),  // Function to use as the child's stderr event
-    close : code => fn(code),   // Function to use as the child's close event
-    error : error => fn(error)  // Function to use as the child's error event
+    stdout : data => fn(data),  // Custom behavior for child's stdout event.
+    stderr : data => fn(data),  // Custom behavior for child's stderr event.
+    close : code => fn(code),   // Custom behavior for child's close event.
+    error : error => fn(error)  // Custom behavior for child's error event.
 }
 ```
 ## Basic Usage
