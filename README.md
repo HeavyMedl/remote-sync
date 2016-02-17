@@ -169,5 +169,5 @@ const config = {
 const client = new RemoteSync(config);
 client.perform();   // Mirror only missing files from remote source to local disk.
                     // If successful, delete the remote source and get remote listing
-                    // from other.host.com
+                    // from other.host.com/files/
 ```
