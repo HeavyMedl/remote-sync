@@ -128,12 +128,13 @@ const config = {
 const client = new RemoteSync(config);
 client.perform(); // Mirror only missing files from remote source to local disk.
 ```
-**Fancy level 2:** Create a conditional chain of operations where you create the condition for further execution. Open a non-persistent connection to `ftp.host.com` and execute operation 1. If operation 1's status is not 0 (success) exit the parent process, halting any further execution.
+**Fancy level 2:** Create a conditional chain of operations where you create the condition for further execution. Open a non-persistent connection to `ftp.host.com` and execute operation 1. If operation 1's status is not 0 (success) exit the parent process, halting any further execution. If operation 1 is successful, operations 2 & 3 will be executed.
 ```js
 // client.js
 const RemoteSync = require('remote-sync');
 const mirror = 'mirror -c --only-missing <source> <dest>';
 const remove = 'rm -r <source>';
+const list = 'nlist files';
 const config = {
     operations : [
         {
@@ -150,6 +151,13 @@ const config = {
         {  
             operation : 'delete directory',
             command : remove
+        },
+        {
+            operation : 'list directory',
+            command : list,
+            user : 'username',
+            pw : 'password',
+            host : 'other.host.com'
         }
     ],
     user : 'kurt',
@@ -160,5 +168,6 @@ const config = {
 };
 const client = new RemoteSync(config);
 client.perform();   // Mirror only missing files from remote source to local disk.
-                    // If successful, delete the remote source.
+                    // If successful, delete the remote source and get remote listing
+                    // from other.host.com/files/
 ```
