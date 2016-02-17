@@ -2,11 +2,11 @@ const RemoteSync = require('./index.js');
 const client = new RemoteSync({
   operations : [
     {
-      operation : 'tv',
+      operation : 'download',
       command : [
         'mirror -c -vvv --only-missing ',
-        'files/completed/ ',
-        '/cygdrive/c/Users/kmedley/Desktop/'
+        'files/completed/Other ',
+        '/Users/kurtmedley/Desktop/'
       ].join('')
     }
     // {
