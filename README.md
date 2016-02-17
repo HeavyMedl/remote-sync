@@ -200,5 +200,40 @@ client.perform();   // Connection stays open until `mirror` and `upload` complet
 ```
 **General Purpose LFTP Client**
 ```js
+'use strict';
 const RemoteSync = require('remote-sync');
+const rs = new RemoteSync({
+  user : 'kurt',
+  pw : 'foobar',
+  host : 'ftp.host.com'
+});
+// Define an iterator and execute commands in series
+rs[Symbol.iterator] = function* () {
+    yield rs.commands('nlist files').execute();
+    yield rs.commands('nlist files/completed').execute();
+    yield rs.commands('nlist files').execute();
+};
+[...rs];
+```
+## Common Commands
+**Mirror directory from <source> to <dest>**
+```js
+const command = 'mirror -c --only-missing <source> <dest>';
+```
+**Upload directory from <local> to <remote>**
+```js
+const upload = 'mirror -R -c --only-newer --overwrite --exclude .git/ <local> <remote>';
+```
+**Delete remote <source>**
+```js
+const remove = 'rm -r <source>';
+```
+**Get remote listing <source>**
+```js
+const list = 'nlist <source>';
+```
+## Cronjob
+```bash
+# Run client.js every 15 minutes
+0/15 * * * * path/to/node path/to/client.js
 ```
