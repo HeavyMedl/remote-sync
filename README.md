@@ -15,7 +15,7 @@ A cross-platform LFTP wrapper for automating file synchronization.
 - Use RemoteSync as a general purpose LFTP client.
 
 ## Dependency
-You'll need to have LFTP installed on your machine as its the child process RemoteSync wraps. I chose LFTP as my FTP(S) client because its easy to work with, comes preinstalled on most Unix-based OS distributions and has a nice port to Windows. If you don't already have LFTP installed (Windows) Use a package management tool to get the latest version:
+You'll need to have LFTP installed on your machine as its the child process RemoteSync wraps. I chose LFTP as my FTP(S) client because its easy to work with, comes preinstalled on most Unix-based OS distributions and has a nice port to Windows. If you don't already have LFTP installed (Windows) use a package management tool to get the latest version:
 
 **Windows** ([Chocolatey](https://chocolatey.org/))
 ```cmd
