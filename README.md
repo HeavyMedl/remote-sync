@@ -48,7 +48,6 @@ sudo yum install lftp
   exit : false,                 // If persistent, close connection after operations finish. Default: false
   debug : true,                 // Pass debug flag to LFTP for verbose logging. Default: false
   stdio : stdio                 // OPTIONAL: If persistent, override stdio configuration of child process 
-                                // https://nodejs.org/api/child_process.html#child_process_options_stdio
                                 // See below. Default: {stdio:[0,1,2]}
 }
 ```
@@ -71,6 +70,14 @@ sudo yum install lftp
 ```
 **stdio Object**
 ```js
+// https://nodejs.org/api/child_process.html#child_process_options_stdio
+{
+    stdio_config : {stdio:[]},  // See above link for custom configuration.
+    stdout : data => fn(data),  // Custom behavior for child's stdout event.
+    stderr : data => fn(data),  // Custom behavior for child's stderr event.
+    close : code => fn(code),   // Custom behavior for child's close event.
+    error : error => fn(error)  // Custom behavior for child's error event.
+}
 ```
 ## Basic Usage
 ```js
