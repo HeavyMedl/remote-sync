@@ -31,6 +31,48 @@ sudo apt-get install lftp
 sudo yum install lftp
 ```
 ## Configuration
+**Constructor Object**
+```js
+{
+  operations : [{},{},..,{}],   // Array of operation objects. See below. 
+  lftp_settings : {             // LFTP settings. See LFTP man page.
+    'setting':'value'
+  },
+  user : 'user',                // User name for host. Default: ''
+  pw : 'password',              // Password for host. Default: ''
+  protocol : 'ftp',             // Protocol (Everything LFTP supports) Default: ftp
+  host : 'some.host.com',       // Host name. Default: ''
+  port : '21',                  // Port number. Default: ''
+  persistent : false,           // Persistent connection. Default: false
+  sync : true,                  // Synchronously execute operations. Default: false
+  exit : false,                 // If persistent, close connection after operations finish. Default: false
+  debug : true,                 // Pass debug flag to LFTP for verbose logging. Default: false
+  stdio : stdio                 // OPTIONAL: If persistent, override stdio configuration of child process 
+                                // https://nodejs.org/api/child_process.html#child_process_options_stdio
+                                // See below. Default: {stdio:[0,1,2]}
+}
+```
+**Operation Object**
+```js
+{
+    operation : 'download',     // Operation name. Something that relates to the command.
+    command : 'lftp command',   // The LFTP command to run. Refer to man page.
+    user : 'user',              // OPTIONAL: User name. If !persistent, overrides constructor value.
+    pw : 'password',            // OPTIONAL: Password. If !persistent, overrides constructor value.
+    protocol : 'ftp',           // OPTIONAL: Protocol. If !persistent, overrides constructor value.
+    host : 'some.host.com',     // OPTIONAL: Host name. If !persistent, overrides constructor value.
+    port : '21',                // OPTIONAL: Port number. If !persistent, overrides constructor value.
+    settings : {                // OPTIONAL: Do stuff based on configuration.
+        sync : fn(child),       // OPTIONAL: If !persistent and sync = true, call fn(child) on finish.
+        stdio : stdio           // OPTIONAL: Override stdio configuration of child process
+                                // See below. Default: {stdio:[0,1,2]}
+    }
+}
+```
+**stdio Object**
+```js
+```
+## Basic Usage
 ```js
 // client.js
 const RemoteSync = require('remote-sync');
