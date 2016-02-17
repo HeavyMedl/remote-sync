@@ -23,7 +23,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="RemoteSync.html">RemoteSync</a><ul class='methods'><li data-type='method'><a href="RemoteSync.html#.escape">escape</a></li><li data-type='method'><a href="RemoteSync.html#_ansi">_ansi</a></li><li data-type='method'><a href="RemoteSync.html#_bind_socket_events">_bind_socket_events</a></li><li data-type='method'><a href="RemoteSync.html#_commands">_commands</a></li><li data-type='method'><a href="RemoteSync.html#_esc_str">_esc_str</a></li><li data-type='method'><a href="RemoteSync.html#_execute">_execute</a></li><li data-type='method'><a href="RemoteSync.html#_execute_persistent">_execute_persistent</a></li><li data-type='method'><a href="RemoteSync.html#_log">_log</a></li><li data-type='method'><a href="RemoteSync.html#_out">_out</a></li><li data-type='method'><a href="RemoteSync.html#_perform">_perform</a></li><li data-type='method'><a href="RemoteSync.html#_perform_it">_perform_it</a></li><li data-type='method'><a href="RemoteSync.html#_pretty">_pretty</a></li><li data-type='method'><a href="RemoteSync.html#_print">_print</a></li><li data-type='method'><a href="RemoteSync.html#_print_err">_print_err</a></li><li data-type='method'><a href="RemoteSync.html#_print_out">_print_out</a></li><li data-type='method'><a href="RemoteSync.html#_run">_run</a></li><li data-type='method'><a href="RemoteSync.html#_safe">_safe</a></li><li data-type='method'><a href="RemoteSync.html#_setup">_setup</a></li><li data-type='method'><a href="RemoteSync.html#_syso">_syso</a></li><li data-type='method'><a href="RemoteSync.html#commands">commands</a></li><li data-type='method'><a href="RemoteSync.html#execute">execute</a></li><li data-type='method'><a href="RemoteSync.html#perform">perform</a></li></ul></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="RemoteSync.html">RemoteSync</a><ul class='methods'><li data-type='method'><a href="RemoteSync.html#.escape">escape</a></li><li data-type='method'><a href="RemoteSync.html#_ansi">_ansi</a></li><li data-type='method'><a href="RemoteSync.html#_bind_socket_events">_bind_socket_events</a></li><li data-type='method'><a href="RemoteSync.html#_commands">_commands</a></li><li data-type='method'><a href="RemoteSync.html#_esc_str">_esc_str</a></li><li data-type='method'><a href="RemoteSync.html#_execute">_execute</a></li><li data-type='method'><a href="RemoteSync.html#_execute_persistent">_execute_persistent</a></li><li data-type='method'><a href="RemoteSync.html#_log">_log</a></li><li data-type='method'><a href="RemoteSync.html#_out">_out</a></li><li data-type='method'><a href="RemoteSync.html#_perform">_perform</a></li><li data-type='method'><a href="RemoteSync.html#_perform_it">_perform_it</a></li><li data-type='method'><a href="RemoteSync.html#_pretty">_pretty</a></li><li data-type='method'><a href="RemoteSync.html#_print">_print</a></li><li data-type='method'><a href="RemoteSync.html#_run">_run</a></li><li data-type='method'><a href="RemoteSync.html#_safe">_safe</a></li><li data-type='method'><a href="RemoteSync.html#_setup">_setup</a></li><li data-type='method'><a href="RemoteSync.html#_syso">_syso</a></li><li data-type='method'><a href="RemoteSync.html#commands">commands</a></li><li data-type='method'><a href="RemoteSync.html#execute">execute</a></li><li data-type='method'><a href="RemoteSync.html#perform">perform</a></li></ul></li></ul>
 </nav>
 
 <div id="main">
@@ -210,8 +210,6 @@ class RemoteSync {
     this._log('%s%sRemoteSync:%s%s Attemping operation(s)'+out, 
       [ this._ansi('cyan'),this._ansi('bold'), 
         this._ansi('rbld'), this._ansi('yllw')]);
-    this._log('%s------------------------------------------------',
-      [this._ansi('cyan')]);
   }
 
   /**
@@ -249,16 +247,16 @@ class RemoteSync {
   _bind_socket_events(child, stdout, stderr, close, error) {
     if (child.stdout &amp;&amp; child.stdout.on) {
       child.stdout.on('data', data => {
-          stdout 
-            ? stdout(data)
-            : this._print_out(data);
+        stdout 
+          ? stdout(data)
+          : this._print(undefined, data, undefined);
       });
     }
     if (child.stderr &amp;&amp; child.stderr.on) {
       child.stderr.on('data', data => {
         stderr
           ? stderr(data)
-          : this._print_out(data);
+          : this._print(undefined, undefined, data);
       });
     }
     if (child.on) {
@@ -328,24 +326,6 @@ class RemoteSync {
   }
 
   /**
-   * [print_out description]
-   * @param  {[type]} stdout [description]
-   * @return {[type]}        [description]
-   */
-  _print_out(stdout) {
-    return this._print(undefined, stdout, undefined);
-  }
-
-  /**
-   * [print_err description]
-   * @param  {[type]} stderr [description]
-   * @return {[type]}        [description]
-   */
-  _print_err(stderr) {
-    return this._print(undefined, stdout, stderr)
-  }
-
-  /**
    * [_execute_persistent description]
    * @return {[type]} [description]
    */
@@ -403,9 +383,9 @@ class RemoteSync {
   _execute(settings) {
     const s = settings;
     const o = this.options;
-    const us = s &amp;&amp; s.us || o.us, pw = s &amp;&amp; s.pw || o.pw, 
-          p = s &amp;&amp; s.p || o.p, ho = s &amp;&amp; s.ho || o.ho, 
-          po = s &amp;&amp; s.po || o.po
+    const us = s &amp;&amp; s.user || o.us, pw = s &amp;&amp; s.pw || o.pw, 
+          p = s &amp;&amp; s.protocol || o.p, ho = s &amp;&amp; s.host || o.ho, 
+          po = s &amp;&amp; s.port || o.po
     const commands = `${o.lftp_settings}
       open -${o.d}u ${us},${pw} ${p}:\/\/${ho}:${po}; 
       ${this.remote_commands}`;
@@ -480,7 +460,7 @@ module.exports = RemoteSync;</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Feb 15 2016 20:20:22 GMT-0800 (PST) using the Minami theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Tue Feb 16 2016 16:46:07 GMT-0800 (PST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>
