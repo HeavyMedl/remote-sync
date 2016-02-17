@@ -35,7 +35,7 @@ sudo yum install lftp
 ```js
 {
   operations : [{},{},..,{}],   // Array of operation objects. See below. 
-  lftp_settings : {             // LFTP settings. See LFTP man page.
+  lftp_settings : {             // OPTIONAL: LFTP settings. See LFTP man page.
     'setting':'value'
   },
   user : 'user',                // User name for host. Default: ''
@@ -80,7 +80,7 @@ sudo yum install lftp
 }
 ```
 ## Examples
-**Fancy level 0:** The following example will use a minimal configuration to demonstrate basic functionality. Open a non-persistent connection to `ftp.host.com`, execute LFTP's `nlist` and exit.
+**Fancy level 0:** The following example will use a minimal configuration to demonstrate basic functionality. Open a non-persistent connection to `ftp.host.com`, execute operation 1 and exit.
 ```js
 // client.js
 const RemoteSync = require('remote-sync');
@@ -98,7 +98,7 @@ const config = {
 const client = new RemoteSync(config);
 client.perform(); // Returns a remote listing of files at ftp.host.com/files/
 ```
-**Fancy level 1:** Add `lftp_settings` to the constructor object to customize the session. Open a non-persistent connection to `ftp.host.com` using FTPES (Explicit FTP over TLS), set parrellel transfer count to 5, execute LFTP's `mirror` and exit. (Read about the flags passed to `mirror` at [LFTP](http://lftp.yar.ru/lftp-man.html).)
+**Fancy level 1:** Add `lftp_settings` to the constructor object to customize the session. Open a non-persistent connection to `ftp.host.com` using FTPES (Explicit FTP over TLS), set parallel transfer count to 5, execute operation 1 and exit. (Read about the flags passed to `mirror` at [LFTP](http://lftp.yar.ru/lftp-man.html).)
 ```js
 // client.js
 const RemoteSync = require('remote-sync');
@@ -127,4 +127,38 @@ const config = {
 };
 const client = new RemoteSync(config);
 client.perform(); // Mirror only missing files from remote source to local disk.
+```
+**Fancy level 2:** Create a conditional chain of operations where you create the condition for further execution. Open a non-persistent connection to `ftp.host.com` and execute operation 1. If operation 1's status is not 0 (success) exit the parent process, halting any further execution.
+```js
+// client.js
+const RemoteSync = require('remote-sync');
+const mirror = 'mirror -c --only-missing <source> <dest>';
+const remove = 'rm -r <source>';
+const config = {
+    operations : [
+        {
+            operation : 'mirror directory',
+            command : mirror,
+            settings : {
+                sync : child => {
+                    if (child.status != 0) {
+                        process.exit(1);
+                    }
+                }
+            }
+        },
+        {  
+            operation : 'delete directory',
+            command : remove
+        }
+    ],
+    user : 'kurt',
+    pw : 'foobar',
+    host : 'ftp.host.com',
+    lftp_settings : settings_obj, // omitted for brevity
+    sync : true
+};
+const client = new RemoteSync(config);
+client.perform();   // Mirror only missing files from remote source to local disk.
+                    // If successful, delete the remote source.
 ```
