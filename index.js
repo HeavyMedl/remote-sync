@@ -105,7 +105,8 @@ class RemoteSync {
   _setup(options) {
     const o = options;
     return {
-      lftp_settings : this._commands(o.lftp_settings) || '',
+      lftp_settings : o.lftp_settings ? 
+        this._commands(o.lftp_settings) : '',
       us : o.user || '',
       pw : o.pw || '',
       p : o.protocol || 'ftp',

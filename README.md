@@ -79,8 +79,52 @@ sudo yum install lftp
     error : error => fn(error)  // Custom behavior for child's error event.
 }
 ```
-## Basic Usage
+## Examples
+**Fancy level 0:** The following example will use a minimal configuration to demonstrate basic functionality. Open a non-persistent connection to `ftp.host.com`, execute LFTP's `nlist` and exit.
 ```js
 // client.js
 const RemoteSync = require('remote-sync');
+const config = {
+    operations : [
+        {
+            operation : 'List',
+            command : 'nlist files'
+        }
+    ],
+    user : 'kurt',
+    pw : 'foobar',
+    host : 'ftp.host.com'
+};
+const client = new RemoteSync(config);
+client.perform(); // Returns a remote listing of files at ftp.host.com/files/
+```
+**Fancy level 1:** Add `lftp_settings` to the constructor object to customize the session. Open a non-persistent connection to `ftp.host.com` using FTPES (Explicit FTP over TLS), set parrellel transfer count to 5, execute LFTP's `mirror` and exit. (Read about the flags passed to `mirror` at [LFTP](http://lftp.yar.ru/lftp-man.html).)
+```js
+// client.js
+const RemoteSync = require('remote-sync');
+const command = 'mirror -c --only-missing <source> <dest>';
+const config = {
+    operations : [
+        {
+            operation : 'mirror directory',
+            command : command
+        }
+    ],
+    user : 'kurt',
+    pw : 'foobar',
+    host : 'ftp.host.com',
+    lftp_settings : {
+        'ftp:ssl-force':'true',
+        'ftp:ssl-protect-data':'true',
+        'ssl:verify-certificate':'false',
+        'net:max-retries':'2',
+        'net:timeout':'10',
+        'net:connection-limit':'5',
+        'net:reconnect-interval-base':'5',
+        'net:reconnect-interval-multiplier':'1',
+        'mirror:parallel-transfer-count':'5'
+    }
+};
+const client = new RemoteSync(config);
+client.perform(); // Mirror only missing files from remote source to local disk.
 ```
