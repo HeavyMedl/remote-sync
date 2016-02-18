@@ -7,12 +7,12 @@ A cross-platform LFTP wrapper for automating file synchronization.
 [Documentation](http://kurtlocker.github.io/remote-sync) | [Repository](https://github.com/kurtlocker/remote-sync)
 
 ## Features
-- Logically organize LFTP operations into a workflow that is easily revisable.
-- Leverage the power of [LFTP](http://lftp.yar.ru/lftp-man.html) to transfer files to/from remote host(s).
-- For speed, open a persistent connection to a designated host and execute your commands in series.
-- Define separate settings (host|user|password) for independent operations that can be executed (a)synchronously.
-- Create a conditional chain of operations where you create the condition for further execution.
-- Use RemoteSync as a general purpose LFTP client.
+- Leverage the power of [LFTP](http://lftp.yar.ru/lftp-man.html) to **transfer files to/from remote host(s)**.
+- Logically **organize LFTP operations into a workflow** that is easily revisable.
+- For speed, **open a persistent connection to a designated host** and execute your commands in series.
+- Define separate settings (host|user|password) for **independent operations that can be executed (a)synchronously**.
+- Create a **conditional chain of operations** where you create the condition for further execution.
+- Use RemoteSync as a **general purpose LFTP client**.
 
 ## Dependency
 You'll need to have LFTP installed on your machine as its the child process RemoteSync wraps. I chose LFTP as my FTP(S) client because its easy to work with, comes preinstalled on most Unix-based OS distributions and has a nice port to Windows. If you don't already have LFTP installed (Windows) use a package management tool to get the latest version:
@@ -216,19 +216,19 @@ rs[Symbol.iterator] = function* () {
 [...rs];
 ```
 ## Common Commands
-**Mirror directory from <source> to <dest>**
+**Mirror directory from `source` to `dest`**
 ```js
-const command = 'mirror -c --only-missing <source> <dest>';
+const mirror = 'mirror -c --only-missing <source> <dest>';
 ```
-**Upload directory from <local> to <remote>**
+**Upload directory from `local` to `remote`**
 ```js
 const upload = 'mirror -R -c --only-newer --overwrite --exclude .git/ <local> <remote>';
 ```
-**Delete remote <source>**
+**Delete remote `source`**
 ```js
 const remove = 'rm -r <source>';
 ```
-**Get remote listing <source>**
+**Get remote listing `source`**
 ```js
 const list = 'nlist <source>';
 ```
