@@ -44,11 +44,11 @@ sudo yum install lftp
   host : 'some.host.com',       // Host name. Default: ''
   port : '21',                  // Port number. Default: ''
   persistent : false,           // Persistent connection. Default: false
-  sync : true,                  // Synchronously execute operations. Default: false
+  sync : true,                  // Synchronously execute operations. Default: true
   exit : false,                 // If persistent, close connection after operations finish. Default: false
   debug : true,                 // Pass debug flag to LFTP for verbose logging. Default: false
-  stdio : stdio                 // OPTIONAL: If persistent, override stdio configuration of child process 
-                                // See below. Default: {stdio:[0,1,2]}
+  stdio : stdio                 // OPTIONAL: Override stdio configuration of child process. This is overridden
+                                // by operation object's stdio property.
 }
 ```
 **Operation Object**
@@ -63,8 +63,8 @@ sudo yum install lftp
     port : '21',                // OPTIONAL: Port number. If !persistent, overrides constructor value.
     settings : {                // OPTIONAL: Do stuff based on configuration.
         sync : fn(child),       // OPTIONAL: If !persistent and sync = true, call fn(child) on finish.
-        stdio : stdio           // OPTIONAL: Override stdio configuration of child process
-                                // See below. Default: {stdio:[0,1,2]}
+        stdio : stdio           // OPTIONAL: Override stdio configuration of child process. This overrides
+                                // constructor object's stdio property.
     }
 }
 ```

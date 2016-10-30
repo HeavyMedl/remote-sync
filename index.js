@@ -119,6 +119,7 @@ class RemoteSync {
       sync : typeof o.sync !== 'undefined' ? o.sync : true,
       persistent : typeof o.persistent !== 'undefined' 
         ? o.persistent : false,
+      stdio : o.stdio ? o.stdio : undefined
     }
   }
   
@@ -288,6 +289,16 @@ class RemoteSync {
       this._out(stderr)));
   }
 
+  _get_stdio(obj) {
+    let stdio = {};
+    stdio.stdio_config = obj && obj.stdio_config ? obj.stdio_config : undefined;
+    stdio.stdout = obj && obj.stdout ? obj.stdout : undefined;
+    stdio.stderr = obj && obj.stderr ? obj.stderr : undefined;
+    stdio.close = obj && obj.close ? obj.close : undefined;
+    stdio.error = obj && obj.error ? obj.error : undefined;
+    return stdio
+  }
+
   /**
    * [_execute_persistent description]
    * @return {[type]} [description]
@@ -299,18 +310,8 @@ class RemoteSync {
     const lftp_settings = `${o.lftp_settings}`;
     const open =
       `open -${o.d}u ${o.us},${o.pw} ${o.p}:\/\/${o.ho}:${o.po};`;
-    const stdio_config = o.stdio && o.stdio.stdio_config 
-      ? o.stdio.stdio_config : {stdio:[0,1,2]};
-    const stdout  = o.stdio && o.stdio.stdout 
-      ? o.stdio.stdout : undefined
-    const stderr  = o.stdio && o.stdio.stderr 
-      ? o.stdio.stderr : undefined;
-    const close   = o.stdio && o.stdio.close
-      ? o.stdio.close : undefined;
-    const error   = o.stdio && o.stdio.error
-      ? o.stdio.error : undefined;
-    
-    let commands  = this.get_commands;
+    const stdio = this._get_stdio(o.stdio);
+    let commands = this.get_commands;
     let ops = [];
     o.operations.forEach(op => {
       ops = ops.concat(op.operation);
@@ -327,13 +328,14 @@ class RemoteSync {
     const exec = `${lftp_settings} ${open} ${this.remote_commands}`;
     
     if (o.exit) {
-      let lftp = spawn('lftp', [eFlag, exec], stdio_config);
-      this._bind_socket_events(lftp, stdout, stderr, close, error);
+      let lftp = spawn('lftp', [eFlag, exec], stdio.stdio_config);
+      this._bind_socket_events(lftp, 
+        stdio.stdout, stdio.stderr, stdio.close, stdio.error);
     } else { // keep open, save child to object.
       this.pers_child = 
-      spawn('lftp', [eFlag, exec], stdio_config);
-      this._bind_socket_events(this.pers_child, stdout, stderr, 
-        close, error);
+      spawn('lftp', [eFlag, exec], stdio.stdio_config);
+      this._bind_socket_events(this.pers_child, 
+        stdio.stdout, stdio.stderr, stdio.close, stdio.error);
     }
     return this;
   }
@@ -349,26 +351,25 @@ class RemoteSync {
     const us = s && s.user || o.us, pw = s && s.pw || o.pw, 
           p = s && s.protocol || o.p, ho = s && s.host || o.ho, 
           po = s && s.port || o.po
+    const stdio = this._get_stdio(s && s.stdio ? s.stdio : o.stdio);
     const commands = `${o.lftp_settings}
       open -${o.d}u ${us},${pw} ${p}:\/\/${ho}:${po}; 
       ${this.remote_commands}`;
     const spawn = o.sync
       ? require('child_process').spawnSync
       : require('child_process').spawn
-    const lftp = spawn('lftp', ['-c', commands], 
-      s && s.stdio && s.stdio.stdio_config 
-        ? s.stdio.stdio_config : {stdio:[0,1,2]});
+    const lftp = spawn('lftp', ['-c', commands], stdio.stdio_config);
     
     if (o.sync) {
       s && s.sync ? s.sync(lftp) : void 0;
+      stdio.stdout ? stdio.stdout(lftp.stdout) : void 0;
+      stdio.stderr ? stdio.stderr(lftp.stderr) : void 0;
+      stdio.close ? stdio.close(lftp.close) : void 0;
+      stdio.exit ? stdio.exit(lftp.exit) : void 0;
       this._print(lftp.status);
-    } else {
-      this._bind_socket_events(lftp, 
-        s && s.stdio && s.stdio.stdout ? s.stdio.stdout  : undefined,
-        s && s.stdio && s.stdio.stderr ? s.stdio.stderr  : undefined,
-        s && s.stdio && s.stdio.close  ? s.stdio.close   : undefined,
-        s && s.stdio && s.stdio.error  ? s.stdio.error   : undefined);
     }
+    this._bind_socket_events(lftp,
+        stdio.stdout, stdio.stderr, stdio.close, stdio.error);
     return this;
   }
 
